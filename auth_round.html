@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Round</title>
+    <!-- Подключаем jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Подключаем скрипт для выполнения аутентификационных раундов -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</head>
+<body>
+    <h2>Authentication Rounds</h2>
+    <p>Authentication in progress...</p>
+    <script>
+        $(document).ready(function() {
+            function startAuth() {
+                $.ajax({
+                    url: '/start_auth',
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.status === 'continue') {
+                            console.log('Starting authentication rounds');
+                            performRound(response.v, response.x);
+                        } else {
+                            alert(response.message);
+                        }
+                    }
+                });
+            }
+
+            function performRound(v, x) {
+                $.ajax({
+                    url: '/auth_round',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ e: Math.floor(Math.random() * 2) }),
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            alert(response.message);
+                        } else if (response.status === 'failed') {
+                            alert(response.message);
+                        } else if (response.status === 'continue') {
+                            console.log('Round completed, continuing to next round');
+                            performRound(response.v, response.x);  // Recursive call for the next round
+                        }
+                    }
+                });
+            }
+
+            startAuth(); // Начинаем аутентификацию при загрузке страницы
+        });
+    </script>
+</body>
+</html>
